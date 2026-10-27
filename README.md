@@ -1,7 +1,9 @@
 # CurveYield Security Audit Releases
 
-This repository retains public CurveYield security audit PDF releases and their selected, sanitized supporting artifacts. Existing published Boosthub Staking v2 PDF and evidence remain unchanged.
+This repository stores selected, sanitized public CurveYield audit PDFs and their supporting evidence. Existing published Boosthub Staking v2 release files are preserved.
 
-The former Boosthub-only automatic PDF build workflow has been retired as part of the Audit-Controller reporting-generator v1 cutover. New releases use the selected-only immutable publisher in `curveyield3/Audit-Controller/audit-generator/src/report_v1/` when explicitly invoked for an accepted campaign with frozen publication consent.
+The former Boosthub-specific automatic publisher is retired. For newly initialized Lite-Solo campaigns, all ten independently selectable publication roles default **ON**; withholding a role is an optional explicit choice made at initialization. Each selected original source ZIP must match the admitted archive bytes and pass the release safety checks. No ZIP is reconstructed and no private controller URLs, credentials, or unselected files are published.
 
-Post-Phase-10 cross-repository dispatch is not yet enabled; this repository does not currently generate new reports automatically. The exact admitted source ZIP is published only if its initialization-time policy selected that role and its original archive bytes are verified; generated reconstructions are prohibited.
+The active publishing entrypoint is the accepted Phase-10 controller workflow in `curveyield3/Contract-Automation`, using its `CURVEYIELD_SECURITY_OWNER` secret to call GitHub's authenticated REST API. The canonical generator remains in private `curveyield3/Audit-Controller/audit-generator/src/report_v1/`. Every successfully generated final report also gets a private copy in its campaign `reports/delivery/<reportReleaseId>/report.pdf`; the public PDF is created only if `report_pdf` was selected.
+
+Historical campaigns without a frozen initialization policy do not acquire retroactive public publication authorization. The public repository contains only immutable, selected-only release folders.
