@@ -335,7 +335,13 @@ c.setTitle("CurveYield Boosthub Staking v2 — Security Audit and Public Evidenc
 c.setAuthor("CurveYield Security")
 c.save()
 
-# Lightweight structural verification: pdfinfo via PyMuPDF is not required.
-from pathlib import Path
+# Enforce the exact publication policy on the generated PDF before committing.
+import fitz
 assert OUT.exists() and OUT.stat().st_size > 20000
-print(f"Generated {OUT} ({OUT.stat().st_size} bytes); {page_no} pages; seven release-local evidence URLs.")
+with fitz.open(OUT) as rendered:
+    assert len(rendered) == page_no == 11, f"Unexpected page count: {len(rendered)}"
+    uris = [link["uri"] for pg in rendered for link in pg.get_links() if link.get("kind") == fitz.LINK_URI]
+    intended = [URL + row[2] for row in links]
+    assert len(uris) == 7 and set(uris) == set(intended), (uris, intended)
+    assert not any("curveyield3/Audit-Controller" in uri or "CurveYield2/Audits" in uri for uri in uris)
+print(f"Generated {OUT} ({OUT.stat().st_size} bytes); {page_no} pages; seven verified release-local hyperlinks; no source ZIP.")
