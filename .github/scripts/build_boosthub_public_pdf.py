@@ -13,6 +13,8 @@ from urllib.parse import quote
 from urllib.request import urlopen, Request
 import hashlib
 import io
+import base64
+import json
 
 import fitz
 from reportlab.pdfgen import canvas
@@ -26,7 +28,7 @@ PDF_NAME = "CurveYield_Boosthub_Staking_v2_Linked_Security_Audit.pdf"
 DEST.mkdir(parents=True, exist_ok=True)
 
 # The prior audit PDF is already public. We do not use private controller content.
-SOURCE_URL = "https://raw.githubusercontent.com/CurveYield2/Audits/main/Boosthub%20Staking%20v2/v2/CurveYield_Boosthub-Staking-v2_Security_Audit_v2.pdf"
+SOURCE_URL = "https://api.github.com/repos/CurveYield2/Audits/git/blobs/2f396f05e07d575f9ee02358b236c20856f91091"
 EXPECTED_SHA256 = "088e8d6700678442a47265b9cc1457ee824a1347efdf66da57c70c8355901adf"
 
 ROWS = [
@@ -42,9 +44,11 @@ BASE_URL = "https://github.com/CurveYield-Security/Audits/blob/main/" + quote(FO
 for title, description, filename in ROWS:
     assert (DEST / filename).is_file(), f"Selected public evidence missing: {filename}"
 
-req = Request(SOURCE_URL, headers={"User-Agent": "CurveYield-Audit-Publication/1.0"})
+req = Request(SOURCE_URL, headers={"User-Agent": "CurveYield-Audit-Publication/1.0", "Accept": "application/vnd.github+json"})
 with urlopen(req, timeout=90) as response:
-    original = response.read()
+    public_blob = json.load(response)
+assert public_blob.get("encoding") == "base64", "Unexpected GitHub blob encoding"
+original = base64.b64decode(public_blob["content"])
 assert hashlib.sha256(original).hexdigest() == EXPECTED_SHA256, "Public baseline report SHA-256 mismatch"
 
 W, H = A4
