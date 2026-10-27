@@ -59,6 +59,26 @@ BORDER=HexColor("#EADDBF")
 PANEL=HexColor("#FFFAF0")
 WHITE=HexColor("#FFFFFF")
 CREAM=HexColor("#FFFDF8")
+# Semantic colors are reserved for issue severity, not for the core brand.
+# They remain distinct from disposition colors (FIXED vs ACCEPTED).
+SEVERITY_COLORS = {
+    "critical": HexColor("#BF2942"),    # Crimson
+    "high": HexColor("#D85D31"),        # Vermilion
+    "medium": HexColor("#B47A13"),      # Amber
+    "low": HexColor("#3269AE"),         # Sapphire
+    "informational": HexColor("#765BA1") # Amethyst
+}
+SEVERITY_TINTS = {
+    "critical": HexColor("#FFF0F2"),
+    "high": HexColor("#FFF2EB"),
+    "medium": HexColor("#FFF7E6"),
+    "low": HexColor("#EFF5FD"),
+    "informational": HexColor("#F5F0FC")
+}
+FIXED_COLOR = HexColor("#177B65")       # Status only: fixed and independently verified
+FIXED_TINT = HexColor("#E8F5EF")
+ACCEPTED_COLOR = HexColor("#9B640C")    # Status only: accepted, not remediated
+ACCEPTED_TINT = HexColor("#FFF3DB")
 # Brand tokens from saved CurveYield homepage CSS (v20/v21): ivory, ink and gold.
 # Contrast-adjusted gold #A36C00 is used for small linked labels on light backgrounds.
 H,W=A4[1],A4[0]
@@ -245,7 +265,7 @@ metric_grid_page("Depth of security investigation","Universal statistics",[
 # 05 SECURITY FINDING RESULTS
 top=start("Findings and resolution","Security outcomes")
 rect(35,top-120,525,112,DEEP,radius=9)
-c.setFillColor(WHITE);c.setFont("Helvetica-Bold",28);c.drawString(51,top-55,"7 LOW")
+c.setFillColor(SEVERITY_COLORS["low"]);c.setFont("Helvetica-Bold",28);c.drawString(51,top-55,"7 LOW")
 link_area(35,top-120,525,112,"Findings_and_Remediation.json")
 c.setFont("Helvetica",11);c.setFillColor(HexColor("#FFF5DD"))
 c.drawString(51,top-85,"No validated Critical, High or Medium findings")
@@ -257,10 +277,17 @@ for x,num,lbl in [(306,"4","FIXED / VERIFIED"),(435,"3","ACCEPTED LOW")]:
 top-=157
 c.setFillColor(NAVY);c.setFont("Helvetica-Bold",11);c.drawString(35,top,"VALIDATED FINDING SEVERITY")
 top-=27
-for label,val,color in [("Critical",0,HexColor("#A92E3B")),("High",0,HexColor("#E16F40")),("Medium",0,GOLD),("Low",7,BLUE)]:
-    c.setFont("Helvetica-Bold",9);c.setFillColor(INK);c.drawString(37,top,label)
+# Even when a class has zero findings, its distinct semantic hue is shown.
+# The filled bar still communicates quantity; a colored chip communicates class.
+for label,val,key in [("Critical",0,"critical"),("High",0,"high"),("Medium",0,"medium"),
+                      ("Low",7,"low"),("Info",0,"informational")]:
+    color = SEVERITY_COLORS[key]
+    rect(36,top-4,7,17,color,radius=2)
+    c.setFont("Helvetica-Bold",9);c.setFillColor(INK);c.drawString(49,top,label)
     rect(111,top-2,405,11,PANEL,radius=4)
-    if val: rect(111,top-2,405*val/7,11,color,radius=4)
+    if val:
+        rect(111,top-2,405*val/7,11,color,radius=4)
+    c.setFillColor(color);c.setFont("Helvetica-Bold",10)
     c.drawRightString(550,top,str(val))
     link_area(35,top-8,525,23,"Findings_and_Remediation.json")
     top-=39
@@ -330,48 +357,69 @@ impacts={
 "BH-V2-RR2-LOW-001":"Exact oracle preview as minOut could revert otherwise normal fee conversions."
 }
 def finding_page(batch,number,total):
-    top=start("LOW-SEVERITY SECURITY FINDINGS",f"Findings {number} of {total}")
-    c.setFillColor(MUTED);c.setFont("Helvetica",8)
-    c.drawString(36,top-4,"Four fixed-size boxes per severity page. Open slots remain blank.")
+    severity = str(batch[0]["severity"]).lower()
+    assert all(str(f["severity"]).lower() == severity for f in batch), "Mixed severity on one page"
+    sev_color = SEVERITY_COLORS[severity]
+    sev_tint = SEVERITY_TINTS[severity]
+    top=start(f"{severity.upper()}-SEVERITY SECURITY FINDINGS",f"Findings {number} of {total}")
+    c.setFillColor(sev_color)
+    c.setFont("Helvetica-Bold",9.0)
+    c.drawString(36,top-4,f"{severity.upper()}  /  {len(batch)} FINDINGS ON THIS PAGE")
     high=top-24;h=150;gap=12
     for i,f in enumerate(batch):
         y=high-(i+1)*h-i*gap
         rect(35,y,525,h,WHITE,stroke=BORDER,radius=7)
-        rect(35,y,5,h,BLUE)
-        c.setFillColor(NAVY);c.setFont("Helvetica-Bold",9.4)
+        # Severity stripe and pale tint are semantic; status is independent.
+        rect(35,y,5,h,sev_color)
+        rect(43,y+h-32,387,25,sev_tint,radius=4)
+        c.setFillColor(sev_color);c.setFont("Helvetica-Bold",9.4)
         c.drawString(49,y+h-20,f["id"])
         isfixed=f["status"]=="REMEDIATED_VERIFIED"
         status="FIXED / VERIFIED" if isfixed else "ACCEPTED RESIDUAL"
-        rect(438,y+h-28,110,18,PALE if isfixed else HexColor("#FFF3DC"),radius=5)
-        c.setFillColor(TEAL if isfixed else HexColor("#A86915"));c.setFont("Helvetica-Bold",7.3)
+        rect(438,y+h-28,110,18,FIXED_TINT if isfixed else ACCEPTED_TINT,radius=5)
+        c.setFillColor(FIXED_COLOR if isfixed else ACCEPTED_COLOR)
+        c.setFont("Helvetica-Bold",7.3)
         c.drawCentredString(493,y+h-22,status)
         para(f["title"],49,y+h-38,484,9.1,NAVY,11,2,True)
-        c.setFillColor(TEAL);c.setFont("Helvetica-Bold",7.4);c.drawString(49,y+75,"DESCRIPTION")
+        c.setFillColor(sev_color);c.setFont("Helvetica-Bold",7.4)
+        c.drawString(49,y+75,"DESCRIPTION")
         para(f["description"],49,y+62,486,8.0,INK,10,3)
-        c.setFillColor(TEAL);c.setFont("Helvetica-Bold",7.4);c.drawString(49,y+28,"SECURITY IMPACT")
+        c.setFillColor(sev_color);c.setFont("Helvetica-Bold",7.4)
+        c.drawString(49,y+28,"SECURITY IMPACT")
         para(impacts[f["id"]],126,y+28,414,7.9,MUTED,10,2)
-        c.setFillColor(MUTED);c.setFont("Helvetica",7.1);c.drawString(49,y+10,"Finding details, impact and disposition verified in the public findings record")
+        c.setFillColor(MUTED);c.setFont("Helvetica",7.1)
+        c.drawString(49,y+10,"Finding details, impact and disposition verified in the public findings record")
         link_area(35,y,525,h,"Findings_and_Remediation.json")
     end()
-finding_page(findings[:4],1,2)
-finding_page(findings[4:],2,2)
+
+# Keep the four-identical-box rule; never mix severities on a page.
+ordered = ["critical", "high", "medium", "low", "informational"]
+finding_batches = []
+for severity in ordered:
+    group = [f for f in findings if str(f["severity"]).lower() == severity]
+    for i in range(0,len(group),4):
+        finding_batches.append(group[i:i+4])
+for i,batch in enumerate(finding_batches,1):
+    finding_page(batch,i,len(finding_batches))
 
 # 10 REMEDIATION & RESIDUAL LOW RISK
 top=start("Remediation and residual risk","Outcomes")
-c.setFillColor(TEAL);c.setFont("Helvetica-Bold",11);c.drawString(35,top,"FOUR INDEPENDENTLY VERIFIED FIXES")
+c.setFillColor(FIXED_COLOR);c.setFont("Helvetica-Bold",11);c.drawString(35,top,"FOUR INDEPENDENTLY VERIFIED FIXES")
 top-=24
 for f in [x for x in findings if x["status"]=="REMEDIATED_VERIFIED"]:
-    rect(35,top-55,525,50,PANEL,radius=6)
+    rect(35,top-55,525,50,FIXED_TINT,radius=6)
+    rect(35,top-55,4,50,FIXED_COLOR)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",8.4);c.drawString(47,top-22,f["id"])
     para(f["title"],200,top-22,344,8.8,INK,12,2)
     link_area(35,top-55,525,50,"Findings_and_Remediation.json")
     top-=65
 top-=17
-c.setFillColor(HexColor("#986000"));c.setFont("Helvetica-Bold",11)
+c.setFillColor(ACCEPTED_COLOR);c.setFont("Helvetica-Bold",11)
 c.drawString(35,top,"THREE EXPRESSLY ACCEPTED LOW FINDINGS")
 top-=25
 for f in [x for x in findings if x["status"]=="ACCEPTED"]:
-    rect(35,top-50,525,45,HexColor("#FFF5DD"),radius=6)
+    rect(35,top-50,525,45,ACCEPTED_TINT,radius=6)
+    rect(35,top-50,4,45,ACCEPTED_COLOR)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",8.4);c.drawString(47,top-20,f["id"])
     para(f["title"],200,top-20,344,8.5,INK,11,2)
     link_area(35,top-50,525,45,"Findings_and_Remediation.json")
@@ -394,6 +442,9 @@ with fitz.open(OUT) as rendered:
     uris = [link["uri"] for pg in rendered for link in pg.get_links() if link.get("kind") == fitz.LINK_URI]
     intended = [URL + row[2] for row in links]
     assert len(uris) >= 55, f"Expected context links throughout report, got {len(uris)}"
+    # A severity is never defined by its disposition, and every severity color is unique.
+    assert len({str(SEVERITY_COLORS[k]) for k in SEVERITY_COLORS}) == len(SEVERITY_COLORS)
+    assert all(str(f["severity"]).lower() in SEVERITY_COLORS for f in findings)
     assert set(uris) == set(intended), (set(uris), set(intended))
     assert len(rendered[1].get_links()) >= 9, "Executive content lacks contextual links"
     assert len(rendered[2].get_links()) >= 16 and len(rendered[3].get_links()) >= 16, "Statistic boxes lack evidence links"
