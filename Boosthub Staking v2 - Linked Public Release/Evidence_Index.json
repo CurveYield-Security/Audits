@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "curveyield-public-pdf-release-index-v1",
+  "audit": "Boosthub Staking v2",
+  "releaseFolder": "Boosthub Staking v2 - Linked Public Release",
+  "publicationPolicy": {
+    "pdf": true,
+    "auditedSourceZip": false,
+    "evidenceFiles": 6
+  },
+  "source": "Previously published sanitized evidence in CurveYield2/Audits, not copied from the private audit controller",
+  "evidence": [
+    {
+      "display_name": "Audit Scope",
+      "file": "Audit_Scope.json",
+      "source_published_file": "Evidence/smart-contract-scope_v1.json",
+      "source_sha256": "3b98afbedb4052f21fbc39b9eb4e3368e908f86d41af1f2419f8ec67dea25bd8",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Audit_Scope.json"
+    },
+    {
+      "display_name": "Findings and Remediation",
+      "file": "Findings_and_Remediation.json",
+      "source_published_file": "Evidence/contract-findings_v1.json",
+      "source_sha256": "110002cf9e4d79efb052762344cf7207e7b09f352d3b7ca5b2f7dd0d2d5ee86f",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Findings_and_Remediation.json"
+    },
+    {
+      "display_name": "Methodology and Analysis",
+      "file": "Methodology_and_Analysis.json",
+      "source_published_file": "Evidence/contract-methodology-summary_v1.json",
+      "source_sha256": "6ecda72027c9da872cd0f8417fbd8a8847e7fa9c3ca4a18e3fda3e84bd374799",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Methodology_and_Analysis.json"
+    },
+    {
+      "display_name": "Medusa Fuzz Results",
+      "file": "Medusa_Fuzz_Results.json",
+      "source_published_file": "Evidence/MEDUSA-TERMINAL-RECORD-v3.json",
+      "source_sha256": "b3ec4b5e466b2e9d9e11f40318c6d4e26ed5239a10a430ec4dfd052c1f5d1325",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Medusa_Fuzz_Results.json"
+    },
+    {
+      "display_name": "Native Fuzz Results",
+      "file": "Native_Fuzz_Results.json",
+      "source_published_file": "Evidence/NATIVE-FUZZ-TERMINAL-RECORD-v3.json",
+      "source_sha256": "5155069f599a0da0565faf9a328332afbf34d49de2408fa5c14ed277e3e5f0ab",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Native_Fuzz_Results.json"
+    },
+    {
+      "display_name": "Execution Results",
+      "file": "Execution_Results.json",
+      "source_published_file": "Evidence/PHASE6_DETERMINISTIC_RESULTS-v1.json",
+      "source_sha256": "f00535f38a9503bb33f5c8b3a8ed0239e164d18b4ebbaaabc79e208798135933",
+      "url": "https://github.com/CurveYield-Security/Audits/blob/main/Boosthub%20Staking%20v2%20-%20Linked%20Public%20Release/Execution_Results.json"
+    }
+  ],
+  "findings": {
+    "BH-V2-LOW-001": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-LOW-002": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-LOW-003": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-LOW-004": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-LOW-005": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-LOW-006": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    },
+    "BH-V2-RR2-LOW-001": {
+      "evidence": [
+        "https://github.com/CurveYield2/Audits/blob/main/Boosthub%20Staking%20v2/v2/Evidence/contract-findings_v1.json"
+      ]
+    }
+  },
+  "scopeBoundary": "Smart-contract security only",
+  "note": "No source ZIP is supplied in this release. The exact initialized archive was not provided for this public publication. URLs list only copied public evidence."
+}
