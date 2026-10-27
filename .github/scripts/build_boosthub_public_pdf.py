@@ -102,6 +102,23 @@ def start(title,section):
 
 def end(): c.showPage()
 
+def link_area(x,y,width,height,document):
+    """Click the actual content region, not a separate evidence button."""
+    assert document in {item[2] for item in links}, document
+    c.linkURL(URL + document, (x,y,x+width,y+height), relative=0, thickness=0)
+
+def linked_label(label,x,y,document,size=9,font="Helvetica-Bold",color=TEAL):
+    """Write a real underlined hyperlink on the named information."""
+    c.setFillColor(color)
+    c.setFont(font,size)
+    c.drawString(x,y,label)
+    width=c.stringWidth(label,font,size)
+    c.setStrokeColor(color)
+    c.setLineWidth(.58)
+    c.line(x,y-2,x+width,y-2)
+    link_area(x,y-4,width,13,document)
+
+
 # 01 COVER — editorial hero, no duplicated process housekeeping.
 page_no+=1
 rect(0,0,W,H,NAVY)
@@ -115,6 +132,7 @@ c.drawString(56,593,"STAKING V2")
 c.setFillColor(HexColor("#B7D5E1"));c.setFont("Helvetica",13)
 c.drawString(56,548,"Independent-review process  /  Sealed August 23, 2026")
 rect(54,368,487,125,DEEP,radius=10)
+link_area(54,368,487,125,"Findings_and_Remediation.json")
 c.setFillColor(HexColor("#A3DBD4"));c.setFont("Helvetica-Bold",10)
 c.drawString(75,469,"FINAL SECURITY VERDICT")
 c.setFillColor(WHITE);c.setFont("Helvetica-Bold",41)
@@ -128,29 +146,52 @@ rect(382,184,159,119,DEEP,radius=10)
 for x,n,label in [(75,"8","SOURCE FILES REVIEWED"),(238,"114","ENTRYPOINTS REVIEWED"),(400,"0","MEDIUM / HIGH / CRITICAL")]:
     c.setFillColor(WHITE);c.setFont("Helvetica-Bold",24);c.drawString(x,239,n)
     c.setFillColor(HexColor("#A9C5D4"));c.setFont("Helvetica",7.5);c.drawString(x,210,label)
+    if x==75: link_area(54,184,153,119,"Audit_Scope.json")
+    elif x==238: link_area(218,184,153,119,"Methodology_and_Analysis.json")
+    else: link_area(382,184,159,119,"Findings_and_Remediation.json")
 c.setFillColor(HexColor("#B7D0DB"));c.setFont("Helvetica",8)
 c.drawString(56,110,"Scope: audited smart contracts only. No production deployment attestation is claimed.")
 c.drawString(56,91,"This release links seven selected public evidence files; the source ZIP is not published.")
 c.setFont("Helvetica",7.5);c.drawRightString(541,48,"01")
 end()
 
-# 02 EXECUTIVE ASSESSMENT
-top=start("Executive security assessment","Executive")
-rect(35,top-94,525,91,PALE,radius=9)
-c.setFillColor(TEAL);c.setFont("Helvetica-Bold",10)
-c.drawString(51,top-27,"COMPLETED REVIEW  •  SECURITY VERDICT: PASS")
-para("The completed V7 audit validated seven Low-severity findings. Four were remediated and independently verified. The remaining three are expressly accepted as marginal, bounded economic impact; they are not fixed.",51,top-48,490,9.6,INK,14,3)
-top-=125
-for head,body in [
-("What was examined","Vault and staking-contract principal flows, reward accounting, share issuance, conversion routes, governance privileges, token interfaces and external dependency behavior."),
-("What the verdict means","No unresolved unaccepted security findings remain within the admitted smart-contract scope. The three accepted Low findings remain present and are identified by finding ID."),
-("Security assurance boundaries","The review assessed source-bound contract behavior and recorded test evidence. It does not certify deployment scripts, release tooling, operator workflow, future market conditions or production configuration."),
-("Assurance independence","The recorded reviewer model is procedural independence only. This report does not claim a blind external third-party audit.")
-]:
-    c.setFillColor(NAVY);c.setFont("Helvetica-Bold",12);c.drawString(36,top,head)
-    top=para(body,36,top-19,516,9.5,MUTED,14)-26
-end()
+# 02 EXECUTIVE ASSESSMENT — system purpose first, findings and repairs second
+top=start("Executive summary","Executive")
+c.setFillColor(TEAL);c.setFont("Helvetica-Bold",9.2)
+c.drawString(35,top-7,"THE CONTRACT SYSTEM AND WHAT IT DOES")
+para("This five-contract suite connects a depositor-facing Vault to a staking Strategy, a Vyper staking layer and the external BoostHub system. It handles principal, withdrawals, reward accrual and conversion for sdCRV, sdFXN and sdYB pool configurations. A governance token controls bounded incentive issuance.",35,top-28,516,9.1,MUTED,13,3)
+top-=83
+contract_rows=[
+("CurveYieldVault","Holds depositor-facing share accounting and redemption claims. Its share pricing can include the Strategy's estimate of unharvested rewards."),
+("CurveYieldStakingStrategyV2","Moves Vault assets into staking, orchestrates harvest and reward conversion, and controls specified rescue and ChildGauge pathways."),
+("BoostHubStaking v17","Vyper staking adapter between the Strategy and BoostHub, handling stake state, reward distribution, fees and withdrawal timing."),
+("SdYbRewardConverter","Implements sdYB-oriented conversion quotes and execution through external liquidity routes used in reward accounting."),
+("CurveYieldGovernanceToken","Manages cyGOV supply, bounded minter allocations, owner privileges and transfer restrictions for governance incentives.")
+]
+for i,(name,description) in enumerate(contract_rows):
+    y=top-57
+    rect(35,y,525,56,PALE if i%2==0 else PANEL,stroke=BORDER,radius=6)
+    label_size=8.9 if c.stringWidth(name,"Helvetica-Bold",8.9)<177 else 8.1
+    linked_label(name,47,y+33,"Methodology_and_Analysis.json",size=label_size)
+    para(description,222,y+38,326,8.5,INK,10.8,3)
+    link_area(35,y,525,56,"Methodology_and_Analysis.json")
+    top-=64
 
+top-=9
+c.setFillColor(TEAL);c.setFont("Helvetica-Bold",9.2)
+c.drawString(35,top,"FINDINGS, REPAIRS AND WHAT REMAINS")
+para("Seven Low-severity findings were validated. Four vulnerabilities were repaired and independently re-tested; three bounded, Low-severity economic risks remain expressly accepted. No Critical, High or Medium findings were validated.",35,top-20,518,9.0,MUTED,12.5,3)
+rect(35,112,258,123,PALE,stroke=BORDER,radius=8)
+rect(302,112,258,123,HexColor("#FFF8E9"),stroke=BORDER,radius=8)
+linked_label("4 FIXED / VERIFIED",49,215,"Findings_and_Remediation.json",size=10,color=TEAL)
+para("Converter pricing and executable tolerance were corrected; the stale reward-rescue timer was reset on reactivation; and sdYB WANT/native reward classification was repaired.",49,195,229,8.7,INK,12.5,5)
+linked_label("3 ACCEPTED LOW RISKS",315,215,"Findings_and_Remediation.json",size=10,color=HexColor("#A46816"))
+para("The remaining risks involve marginal reward-preview effects on share issuance, privileged rescue of disabled reward balances, and reward carry stranded after disablement.",315,195,229,8.7,INK,12.5,5)
+link_area(35,112,258,123,"Findings_and_Remediation.json")
+link_area(302,112,258,123,"Findings_and_Remediation.json")
+linked_label("Smart-contract scope and exclusions",35,80,"Audit_Scope.json",size=8.0,font="Helvetica")
+linked_label("Public evidence provenance",313,80,"Evidence_Index.json",size=8.0,font="Helvetica")
+end()
 def metric_grid_page(title,section,groups):
     top=start(title,section)
     for group_title, entries in groups:
@@ -165,8 +206,25 @@ def metric_grid_page(title,section,groups):
             c.setFillColor(NAVY);c.setFont("Helvetica-Bold",24)
             c.drawString(x+12,y+44,str(value))
             para(label,x+12,y+28,cw-20,7.9,MUTED,10,2)
+            # The statistic tile itself is linked to the most relevant public evidence.
+            document=stat_source(label)
+            c.setStrokeColor(TEAL);c.setLineWidth(1.5)
+            c.line(x+12,y+9,x+29,y+9)
+            link_area(x,y,cw,ch,document)
         top-=math.ceil(len(entries)/cols)*(ch+8)+27
     end()
+
+def stat_source(label):
+    # Every published statistic is bound to one of the seven selected aggregate records.
+    if label in ("Implementations reviewed","Interfaces examined","Audited source files","Source languages"):
+        return "Audit_Scope.json"
+    if label in ("Substantive candidates","Candidates dispositioned","Dismissed candidates","Inconclusive candidates",
+                 "Validated security findings","Verified remediations","Accepted residual findings"):
+        return "Findings_and_Remediation.json"
+    if label in ("Dynamically evidenced candidates",):
+        return "Execution_Results.json"
+    return "Methodology_and_Analysis.json"
+
 
 # 03 UNIVERSAL AUDIT FOOTPRINT
 metric_grid_page("Audit footprint","Universal statistics",[
@@ -184,6 +242,7 @@ metric_grid_page("Depth of security investigation","Universal statistics",[
 top=start("Findings and resolution","Security outcomes")
 rect(35,top-120,525,112,DEEP,radius=9)
 c.setFillColor(WHITE);c.setFont("Helvetica-Bold",28);c.drawString(51,top-55,"7 LOW")
+link_area(35,top-120,525,112,"Findings_and_Remediation.json")
 c.setFont("Helvetica",11);c.setFillColor(HexColor("#BDD1DE"))
 c.drawString(51,top-85,"No validated Critical, High or Medium findings")
 rect(292,top-101,116,67,HexColor("#173E51"),radius=6)
@@ -198,7 +257,9 @@ for label,val,color in [("Critical",0,HexColor("#A92E3B")),("High",0,HexColor("#
     c.setFont("Helvetica-Bold",9);c.setFillColor(INK);c.drawString(37,top,label)
     rect(111,top-2,405,11,PANEL,radius=4)
     if val: rect(111,top-2,405*val/7,11,color,radius=4)
-    c.drawRightString(550,top,str(val));top-=39
+    c.drawRightString(550,top,str(val))
+    link_area(35,top-8,525,23,"Findings_and_Remediation.json")
+    top-=39
 top-=8
 c.setFillColor(NAVY);c.setFont("Helvetica-Bold",11);c.drawString(35,top,"CANDIDATE DISPOSITION")
 top-=26
@@ -220,6 +281,7 @@ for label,x in nodes:
     rect(x,top-57,width,55,PALE,stroke=BORDER,radius=7)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",8)
     c.drawCentredString(x+width/2,top-30,label)
+    link_area(x,top-57,width,55,"Methodology_and_Analysis.json")
 for x1,x2 in [(143,149),(250,260),(362,372),(474,471)]:
     c.setStrokeColor(TEAL);c.setLineWidth(1.5);c.line(x1,top-30,x2,top-30)
 top-=112
@@ -230,7 +292,9 @@ for title,desc in [
 ("Independent external dependencies","BoostHub, ERC-20 assets, reward converters, Curve pools and ChildGauge integrations introduce external liveness or trust assumptions.")
 ]:
     c.setFillColor(TEAL);c.setFont("Helvetica-Bold",11);c.drawString(35,top,title)
+    before=top
     top=para(desc,35,top-18,522,9.2,MUTED,13,3)-31
+    link_area(35,top+21,522,before-top-12,"Methodology_and_Analysis.json")
 end()
 
 # 07 EVIDENCE & TESTS
@@ -247,6 +311,7 @@ for n,title,desc in [
     c.setFillColor(WHITE);c.setFont("Helvetica-Bold",13);c.drawCentredString(69,top-49,n)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",11);c.drawString(106,top-36,title)
     para(desc,106,top-54,438,8.9,MUTED,12,3)
+    link_area(35,top-95,525,84,("Medusa_Fuzz_Results.json" if n=="01" else "Native_Fuzz_Results.json" if n=="02" else "Execution_Results.json" if n=="03" else "Methodology_and_Analysis.json" if n=="04" else "Findings_and_Remediation.json"))
     top-=108
 end()
 
@@ -281,7 +346,8 @@ def finding_page(batch,number,total):
         para(f["description"],49,y+62,486,8.0,INK,10,3)
         c.setFillColor(TEAL);c.setFont("Helvetica-Bold",7.4);c.drawString(49,y+28,"SECURITY IMPACT")
         para(impacts[f["id"]],126,y+28,414,7.9,MUTED,10,2)
-        c.setFillColor(MUTED);c.setFont("Helvetica",7.1);c.drawString(49,y+10,"Complete evidence and disposition: Findings_and_Remediation.json")
+        c.setFillColor(MUTED);c.setFont("Helvetica",7.1);c.drawString(49,y+10,"Finding details, impact and disposition verified in the public findings record")
+        link_area(35,y,525,h,"Findings_and_Remediation.json")
     end()
 finding_page(findings[:4],1,2)
 finding_page(findings[4:],2,2)
@@ -294,6 +360,7 @@ for f in [x for x in findings if x["status"]=="REMEDIATED_VERIFIED"]:
     rect(35,top-55,525,50,PANEL,radius=6)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",8.4);c.drawString(47,top-22,f["id"])
     para(f["title"],200,top-22,344,8.8,INK,12,2)
+    link_area(35,top-55,525,50,"Findings_and_Remediation.json")
     top-=65
 top-=17
 c.setFillColor(HexColor("#A46816"));c.setFont("Helvetica-Bold",11)
@@ -303,33 +370,13 @@ for f in [x for x in findings if x["status"]=="ACCEPTED"]:
     rect(35,top-50,525,45,HexColor("#FFF8EA"),radius=6)
     c.setFillColor(NAVY);c.setFont("Helvetica-Bold",8.4);c.drawString(47,top-20,f["id"])
     para(f["title"],200,top-20,344,8.5,INK,11,2)
+    link_area(35,top-50,525,45,"Findings_and_Remediation.json")
     top-=58
 top-=14
 para("These accepted issues remain unfixed. They are documented as marginal, bounded economic impact, not as eliminated risk. Further code or configuration changes require their own source-bound review before any equivalence to this audit may be claimed.",35,top,521,9.0,MUTED,13,5)
 end()
 
-# 11 CURATED PUBLIC REFERENCES
-top=start("Explore the audit evidence","Public files")
-rect(35,top-54,525,45,PALE,radius=6)
-c.setFillColor(TEAL);c.setFont("Helvetica-Bold",9.3)
-c.drawString(47,top-32,"SEVEN SELECTED PUBLIC FILES   /   SOURCE ZIP NOT PUBLISHED")
-top-=75
-for i,(title,description,filename) in enumerate(links,1):
-    y=top-64
-    rect(35,y,525,58,PANEL if i%2 else WHITE,stroke=BORDER,radius=6)
-    rect(46,y+16,32,31,TEAL,radius=5)
-    c.setFillColor(WHITE);c.setFont("Helvetica-Bold",10)
-    c.drawCentredString(62,y+26,f"{i:02}")
-    c.setFillColor(NAVY);c.setFont("Helvetica-Bold",10.5)
-    c.drawString(91,y+39,title)
-    c.setFillColor(MUTED);c.setFont("Helvetica",8)
-    c.drawString(91,y+23,description)
-    c.setFillColor(TEAL);c.setFont("Helvetica-Bold",7.7)
-    c.drawString(91,y+10,"OPEN PUBLIC RECORD")
-    c.linkURL(URL+filename,(35,y,560,y+58),relative=0,thickness=0)
-    top-=73
-para("These files were already publicly released as sanitized audit evidence. No source ZIP has been reconstructed or published. This report creates no links into private audit infrastructure.",35,top-12,520,8.3,MUTED,12,3)
-end()
+
 
 c.setTitle("CurveYield Boosthub Staking v2 — Security Audit and Public Evidence")
 c.setAuthor("CurveYield Security")
@@ -339,9 +386,13 @@ c.save()
 import fitz
 assert OUT.exists() and OUT.stat().st_size > 20000
 with fitz.open(OUT) as rendered:
-    assert len(rendered) == page_no == 11, f"Unexpected page count: {len(rendered)}"
+    assert len(rendered) == page_no == 10, f"Unexpected page count: {len(rendered)}"
     uris = [link["uri"] for pg in rendered for link in pg.get_links() if link.get("kind") == fitz.LINK_URI]
     intended = [URL + row[2] for row in links]
-    assert len(uris) == 7 and set(uris) == set(intended), (uris, intended)
+    assert len(uris) >= 55, f"Expected context links throughout report, got {len(uris)}"
+    assert set(uris) == set(intended), (set(uris), set(intended))
+    assert len(rendered[1].get_links()) >= 9, "Executive content lacks contextual links"
+    assert len(rendered[2].get_links()) >= 16 and len(rendered[3].get_links()) >= 16, "Statistic boxes lack evidence links"
+    assert len(rendered[-1].get_links()) >= 7, "Finding-resolution descriptions lack links"
     assert not any("curveyield3/Audit-Controller" in uri or "CurveYield2/Audits" in uri for uri in uris)
-print(f"Generated {OUT} ({OUT.stat().st_size} bytes); {page_no} pages; seven verified release-local hyperlinks; no source ZIP.")
+print(f"Generated {OUT} ({OUT.stat().st_size} bytes); {page_no} pages; {len(uris)} in-context hyperlinks to seven distinct release-local documents; no source ZIP or reference page.")
